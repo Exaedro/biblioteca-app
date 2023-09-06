@@ -57,7 +57,7 @@ class App:
         self.boton = ttk.Button(self.frame, text='Iniciar Sesion', command=lambda:self.verificar(), width=30).grid(column=0, row=4, pady=10)
 
         self.app.mainloop()
-
+# hola
     def crearInicio(self):
         self.frame.destroy()
 
