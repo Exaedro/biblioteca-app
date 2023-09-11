@@ -170,7 +170,7 @@ class App:
 
         self.frame = Frame(self.app)
         self.libros = Frame(self.app)
-        self.frame.pack()
+        self.frame.pack(pady=20)
         self.libros.pack(side="left", fill="y")
 
         db = MySQL()
@@ -182,10 +182,9 @@ class App:
             self.frame,
             text=f"¡Bienvenido {nombreUsuario}!",
             font=self.fuenteAlta,
-            padding=10,
         ).grid(column=0, row=0)
         self.texto1 = ttk.Label(
-            self.libros, text="Libros disponibles", padding=10, font=self.fuenteAlta
+            self.libros, text="Libros disponibles", font=self.fuenteAlta
         ).grid(column=0, row=2)
 
         libros = db.obtenerLibros()
@@ -193,14 +192,13 @@ class App:
             ttk.Label(
                 self.libros,
                 text=f"{libros[i][1].capitalize().replace('-', ' ')} / {libros[i][2].capitalize().replace('-', ' ')} / {libros[i][3]}",
-                padding=10,
             ).grid(column=0, row=i + 3)
             self.libroBoton = ttk.Button(
                 self.libros,
                 text="Pedir prestado",
                 command=lambda libro=libros[i][0]: self.pedirLibroPrestado(libro),
                 state=NORMAL if libros[i][4] else DISABLED,
-            ).grid(column=1, row=i + 3)
+            ).grid(column=1, row=i + 3, pady=2.5, padx=3)
             if rolUsuario == "administrador":
                 ttk.Button(
                     self.libros,
@@ -215,14 +213,14 @@ class App:
         if rolUsuario == "administrador":
             self.libro = ttk.Button(
                 self.frame, text="Añadir libro", command=lambda: self.crearLibro()
-            ).grid(column=1, row=0)
+            ).grid(column=1, row=0, padx=3)
         ttk.Button(
             self.frame,
             text="Perfil",
             command=lambda: combine_funcs(
                 self.frame.destroy(), self.libros.destroy(), self.usuarioPerfil()
             ),
-        ).grid(column=2, row=0)
+        ).grid(column=2, row=0, padx=3)
 
         self.app.mainloop()
 
@@ -329,7 +327,13 @@ class App:
             textvariable=self.disponibilidad,
         ).grid(column=1, row=4, pady=2.5)
 
-        ttk.Button(self.frame, text="Cancelar").grid(column=0, row=5)
+        ttk.Button(
+            self.frame,
+            text="Cancelar",
+            command=lambda: combine_funcs(
+                self.tituloFrame.destroy(), self.crearInicio()
+            ),
+        ).grid(column=0, row=5)
         ttk.Button(
             self.frame,
             text="Aceptar",
@@ -351,12 +355,12 @@ class App:
 
     def usuarioPerfil(self):
         self.titulo = Frame()
-        self.titulo.pack(pady=10)
+        self.titulo.pack(pady=20)
 
         db = MySQL()
 
         self.libros = Frame()
-        self.libros.pack(fill="y", side="left", padx=10, pady=15)
+        self.libros.pack(fill="y", side="left", padx=10)
 
         ttk.Button(
             self.titulo,
@@ -389,7 +393,7 @@ class App:
                     self.libros.destroy(),
                     self.usuarioPerfil(),
                 ),
-            ).grid(column=1, row=i + 3)
+            ).grid(column=1, row=i + 3, pady=2.5)
 
     # Funciones que interactuan con la base de datos
     def pedirLibroPrestado(self, libroId):
