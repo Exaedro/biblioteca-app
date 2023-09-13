@@ -1,6 +1,7 @@
 # Biblioteca
 
 ## MySQL - Tablas
+Nombre de la base de datos: **biblioteca**
 ### Usuarios
 | Campo          | Tipo     | Longitud |
 | -------------- | -------- | -------- |
