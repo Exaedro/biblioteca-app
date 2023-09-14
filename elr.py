@@ -9,9 +9,10 @@ class MySQL:
     def __init__(self):
         self.db = mysql.connector.connect(
             user="root",
-            password="29422196",
+            password="",
             host="127.0.0.1",
             database="biblioteca",
+            port='3306',
             auth_plugin="mysql_native_password",
         )
         self.cursor = self.db.cursor(buffered=True)
@@ -46,6 +47,11 @@ class MySQL:
     def editarLibro(self, libroId, titulo, autor, anio, disp):
         disp = 1 if disp.lower() == "si" else 0
         consulta = f"UPDATE libros SET titulo = '{titulo.lower().replace(' ', '-')}', autor = '{autor.lower().replace(' ', '-')}', anio = '{anio}', disponibilidad = '{disp}' WHERE id = '{libroId}'"
+        self.cursor.execute(consulta)
+        self.db.commit()
+
+    def eliminarLibro(self, libroId):
+        consulta = f"delete from libros where id = '{libroId}'"
         self.cursor.execute(consulta)
         self.db.commit()
 
@@ -87,9 +93,6 @@ class App:
         self.usuario = StringVar()
         self.contra = StringVar()
         self.rol = StringVar()
-
-        self.usuario.set("Exaedro")
-        self.contra.set("y2k38")
 
         self.frame = Frame(self.app)
         self.frame.pack()
@@ -209,6 +212,15 @@ class App:
                         self.editarLibro(libro),
                     ),
                 ).grid(column=2, row=i + 3)
+                ttk.Button(
+                    self.libros,
+                    text='Eliminar',
+                    command=lambda libroId=libros[i][0]: combine_funcs(
+                        self.eliminarLibro(libroId),
+                        self.libros.destroy(),
+                        self.crearInicio()
+                    )
+                ).grid(column=3, row=i+3, padx=3)
 
         if rolUsuario == "administrador":
             self.libro = ttk.Button(
@@ -395,6 +407,7 @@ class App:
                 ),
             ).grid(column=1, row=i + 3, pady=2.5)
 
+
     # Funciones que interactuan con la base de datos
     def pedirLibroPrestado(self, libroId):
         db = MySQL()
@@ -492,5 +505,14 @@ class App:
             else:
                 messagebox.showerror("Error", "Este libro ya existe")
 
+    def eliminarLibro(self, libroId):
+        db = MySQL()
+        
+        verificar = db.consulta(f"select * from libros where id = '{libroId}'")
+        if(verificar == []):
+            messagebox.showerror('Error', 'Este libro ya fue borrado o no existe')
+        else:
+            per = messagebox.askyesno('Confirmacion', '¿Estas seguro que queres eliminar este libro?')
+            db.eliminarLibro(libroId) if per == 1 else 0
 
 app = App()
