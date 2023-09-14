@@ -173,6 +173,7 @@ class App:
 
         self.frame = Frame(self.app)
         self.libros = Frame(self.app)
+
         self.frame.pack(pady=20)
         self.libros.pack(side="left", fill="y", padx=10)
 
