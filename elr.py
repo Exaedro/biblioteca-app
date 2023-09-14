@@ -407,7 +407,6 @@ class App:
                 ),
             ).grid(column=1, row=i + 3, pady=2.5)
 
-
     # Funciones que interactuan con la base de datos
     def pedirLibroPrestado(self, libroId):
         db = MySQL()
@@ -451,13 +450,16 @@ class App:
                 f"SELECT nombre, contra, rol FROM usuarios WHERE nombre = '{usuario}' AND contra = '{contra}'"
             )
 
-            if sql != False and sql is not None:
-                messagebox.showinfo("Verificado", "Iniciaste sesion.")
-                self.rol.set(sql[0][2])
-                self.crearInicio()
+            if sql == []:
+                messagebox.showerror("Error", "No te conocemos, ¿quien eres?.")
             else:
-                messagebox.showerror("Error", "Datos erroneos.")
-
+                if(contra == sql[0][1]):    
+                    messagebox.showinfo("Verificado", "Iniciaste sesion.")
+                    self.rol.set(sql[0][2])
+                    self.crearInicio()
+                else:
+                    messagebox.showerror("Error", "La contraseña es erronea.")
+                
     def verificarRegistroSesion(self):
         usuario = self.usuario.get()
         contra = self.contra.get()
