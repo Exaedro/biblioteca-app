@@ -94,8 +94,12 @@ class App:
         self.contra = StringVar()
         self.rol = StringVar()
 
+        self.titulo = Frame(self.app)
+        self.titulo.pack()
         self.frame = Frame(self.app)
         self.frame.pack()
+
+        ttk.Label(self.titulo, text='Iniciar sesion', font='bold').grid(column=0, row=0, pady=30)
 
         self.texto1 = ttk.Label(self.frame, text="Usuario", font="bold").grid(
             column=0, row=0, pady=10
@@ -120,7 +124,7 @@ class App:
         self.boton2 = ttk.Button(
             self.frame,
             text="Registrarse",
-            command=lambda: combine_funcs(self.frame.destroy(), self.crearRegistro()),
+            command=lambda: combine_funcs(self.titulo.destroy(), self.frame.destroy(), self.crearRegistro()),
             width=30,
         ).grid(column=0, row=5)
 
@@ -181,6 +185,8 @@ class App:
 
         nombreUsuario = self.usuario.get()
         rolUsuario = self.rol.get()
+
+        
 
         self.inicioLabel = ttk.Label(
             self.frame,
