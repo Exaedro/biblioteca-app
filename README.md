@@ -1,7 +1,10 @@
 # Biblioteca
 
-## MySQL - Tablas
+# MySQL
 Nombre de la base de datos: **biblioteca**
+## Diseñador
+![image](https://github.com/Exaedro/biblioteca-app/assets/77593869/951cb361-e297-4a52-a68d-bf4885b44a40)
+## Tablas
 ### Usuarios
 | Campo          | Tipo     | Longitud |
 | -------------- | -------- | -------- |
