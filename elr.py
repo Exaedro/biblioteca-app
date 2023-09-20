@@ -5,6 +5,27 @@ from tkinter.font import Font
 import mysql.connector
 
 
+#ABECEDARIO DEL CODIGO
+#+------+-------+-------+
+#|  a   |   a   |   a   |
+#+------+-------+-------+
+#|  b   |   b   |   b   |
+#+------+-------+-------+
+#|  c   |   c   |   c   |
+#+------+-------+-------+
+#|  d   |   d   |   d   |
+#+------+-------+-------+
+#|  e   |   e   |   e   |
+#+------+-------+-------+
+#|  f   |   f   |   f   |
+#+------+-------+-------+
+#|  g   |   g   |   g   |
+#+------+-------+-------+
+#|  h   |   h   |   h   |
+#+------+-------+-------+
+#|  i   |   i   |   i   |
+#+------+-------+-------+
+
 class MySQL:
     def __init__(self):
         self.db = mysql.connector.connect(
@@ -49,6 +70,11 @@ class MySQL:
         self.cursor.execute(consulta)
         self.db.commit()
 
+    def eliminarLibro(self, libroId):
+        consulta = f"DELETE FROM libros WHERE id = {libroId}"
+        self.cursor.execute(consulta)
+        self.db.commit()
+
     def obtenerUsuarios(self):
         self.cursor.execute("SELECT * FROM usuarios")
         resultados = self.cursor.fetchall()
@@ -77,7 +103,7 @@ class App:
         self.fuenteBaja = Font(family="Roboto Cn", size=8, font="bold")
 
         self.app.geometry("500x300")
-        self.app.title("Biblioteca")
+        self.app.title("PepeLibrary")
 
         self.crearInicioDeSesion()
 
@@ -206,6 +232,16 @@ class App:
                         self.editarLibro(libro),
                     ),
                 ).grid(column=2, row=i + 3)
+                ttk.Button(
+                    self.libros,
+                    text='Eliminar',
+                    command=lambda libroId=libros[i][0]: combine_funcs(
+                        self.eliminarLibro(libroId),
+                        self.frame.destroy(),
+                        self.libros.destroy(),
+                        self.crearInicio()
+                    )
+                ).grid(column=3, row=i+3)
 
         if rolUsuario == "administrador":
             self.libro = ttk.Button(
@@ -414,6 +450,13 @@ class App:
         else:
             db.devolverLibro(libroId, usuarioNombre)
             messagebox.showinfo("Exitoso", "Haz devuelto un libro.")
+
+    def eliminarLibro(self, libroId):
+        db = MySQL()
+        
+        ver = messagebox.askyesno('Confirmacion', '¿Esta seguro que quiere eliminar este libro?')
+        if(ver == True):
+            db.eliminarLibro(libroId)
 
     def verificarInicioSesion(self):
         usuario = self.usuario.get()
