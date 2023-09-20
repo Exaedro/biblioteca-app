@@ -104,6 +104,7 @@ class App:
 
         self.app.geometry("500x300")
         self.app.title("PepeLibrary")
+        self.app.resizable(width=0, height=1)
 
         self.crearInicioDeSesion()
 
@@ -563,6 +564,5 @@ class App:
                     db.insertarLibro(titulo, autor, anio, disponibilidad)
             else:
                 messagebox.showerror("Error", "Este libro ya existe")
-
 
 app = App()
