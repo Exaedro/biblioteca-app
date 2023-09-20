@@ -4,6 +4,9 @@ from tkinter import messagebox
 from tkinter.font import Font
 import mysql.connector
 
+# Buscador
+# Cerrar sesion
+# Creditos
 
 #ABECEDARIO DEL CODIGO
 #+------+-------+-------+
