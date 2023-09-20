@@ -10,9 +10,9 @@ class MySQL:
         self.db = mysql.connector.connect(
             user="root",
             password="",
-            host="127.0.0.1",
-            database="biblioteca",
-            port='3306',
+            host="localhost",
+            database="db_biblioteca",
+            port="3306",
             auth_plugin="mysql_native_password",
         )
         self.cursor = self.db.cursor(buffered=True)
@@ -45,13 +45,7 @@ class MySQL:
         return libros
 
     def editarLibro(self, libroId, titulo, autor, anio, disp):
-        disp = 1 if disp.lower() == "si" else 0
         consulta = f"UPDATE libros SET titulo = '{titulo.lower().replace(' ', '-')}', autor = '{autor.lower().replace(' ', '-')}', anio = '{anio}', disponibilidad = '{disp}' WHERE id = '{libroId}'"
-        self.cursor.execute(consulta)
-        self.db.commit()
-
-    def eliminarLibro(self, libroId):
-        consulta = f"delete from libros where id = '{libroId}'"
         self.cursor.execute(consulta)
         self.db.commit()
 
@@ -94,12 +88,8 @@ class App:
         self.contra = StringVar()
         self.rol = StringVar()
 
-        self.titulo = Frame(self.app)
-        self.titulo.pack()
         self.frame = Frame(self.app)
         self.frame.pack()
-
-        ttk.Label(self.titulo, text='Iniciar sesion', font='bold').grid(column=0, row=0, pady=30)
 
         self.texto1 = ttk.Label(self.frame, text="Usuario", font="bold").grid(
             column=0, row=0, pady=10
@@ -124,7 +114,7 @@ class App:
         self.boton2 = ttk.Button(
             self.frame,
             text="Registrarse",
-            command=lambda: combine_funcs(self.titulo.destroy(), self.frame.destroy(), self.crearRegistro()),
+            command=lambda: combine_funcs(self.frame.destroy(), self.crearRegistro()),
             width=30,
         ).grid(column=0, row=5)
 
@@ -177,7 +167,6 @@ class App:
 
         self.frame = Frame(self.app)
         self.libros = Frame(self.app)
-
         self.frame.pack(pady=20)
         self.libros.pack(side="left", fill="y", padx=10)
 
@@ -185,8 +174,6 @@ class App:
 
         nombreUsuario = self.usuario.get()
         rolUsuario = self.rol.get()
-
-        
 
         self.inicioLabel = ttk.Label(
             self.frame,
@@ -219,15 +206,6 @@ class App:
                         self.editarLibro(libro),
                     ),
                 ).grid(column=2, row=i + 3)
-                ttk.Button(
-                    self.libros,
-                    text='Eliminar',
-                    command=lambda libroId=libros[i][0]: combine_funcs(
-                        self.eliminarLibro(libroId),
-                        self.libros.destroy(),
-                        self.crearInicio()
-                    )
-                ).grid(column=3, row=i+3, padx=3)
 
         if rolUsuario == "administrador":
             self.libro = ttk.Button(
@@ -356,18 +334,14 @@ class App:
         ttk.Button(
             self.frame,
             text="Aceptar",
-            command=lambda: combine_funcs(
-                self.tituloFrame.destroy(),
-                self.frame.destroy(),
-                db.editarLibro(
+            command=lambda: 
+                self.verificarEdicion(
                     libroId,
                     self.titulo.get(),
                     self.autor.get(),
                     self.anio.get(),
                     self.disponibilidad.get(),
                 ),
-                self.crearInicio(),
-            ),
         ).grid(column=1, row=5)
 
         self.app.mainloop()
@@ -457,30 +431,64 @@ class App:
                 f"SELECT nombre, contra, rol FROM usuarios WHERE nombre = '{usuario}' AND contra = '{contra}'"
             )
 
-            if sql == []:
-                messagebox.showerror("Error", "No te conocemos, ¿quien eres?.")
+            if sql != []:
+                messagebox.showinfo("Verificado", "Iniciaste sesion.")
+                self.rol.set(sql[0][2])
+                self.crearInicio()
             else:
-                if(contra == sql[0][1]):    
-                    messagebox.showinfo("Verificado", "Iniciaste sesion.")
-                    self.rol.set(sql[0][2])
-                    self.crearInicio()
-                else:
-                    messagebox.showerror("Error", "La contraseña es erronea.")
-                
+                messagebox.showerror("Error", "Datos erroneos.")
+
     def verificarRegistroSesion(self):
         usuario = self.usuario.get()
         contra = self.contra.get()
         db = MySQL()
 
-        sql = db.consulta(
-            f"SELECT nombre, contra FROM usuarios WHERE nombre = '{usuario}' AND contra = '{contra}'"
-        )
-        if sql == []:
-            elpepe = (usuario, contra)
-            db.insertIntoUsuarios(elpepe)
-            messagebox.showinfo("Registrado", "Te has registrado correctamente.")
+        if(usuario == '' and contra == ''):
+            messagebox.showerror('Error', 'Ingresa tus datos para registrarte.')
+        elif(usuario == ''):
+            messagebox.showerror('Error', 'Ingrese su usuario.')
+        elif(contra == ''):
+            messagebox.showerror('Error', 'Ingrese su contraseña.')
+        else:           
+            sql = db.consulta(
+                f"SELECT nombre, contra FROM usuarios WHERE nombre = '{usuario}' AND contra = '{contra}'"
+            )
+            
+            if sql == []:
+                valores = (usuario, contra)
+                db.insertIntoUsuarios(valores)
+                messagebox.showinfo("Registrado", "Te has registrado correctamente.")
+            else:
+                messagebox.showerror("Error", "Este usuario ya existe.")
+
+    def verificarEdicion(self, libroId, titulo, autor, anio, disp):
+        db = MySQL()
+
+        if(titulo == '' and autor == '' and anio == ''):
+            messagebox.showerror('Error', 'Escribe los datos del libro.')
+        elif(titulo == ''):
+            messagebox.showerror('Error', 'Escribe el titulo del libro.')
+        elif(autor == ''):
+            messagebox.showerror('Error', 'Escribe el autor del libro.')
+        elif(anio == ''):
+            messagebox.showerror('Error', 'Escribe el año de publicacion del libro.')
+        elif(disp is int):
+            messagebox.showerror('Error', 'Elije si el titulo estara disponible.')
+
+        elif(len(titulo) > 32):
+            messagebox.showerror('Error', 'El titulo del libro sobrepasa el limite de caracteres.')
+        elif(len(autor) > 40):
+            messagebox.showerror('Error', 'El autor del libro sobrepasa el limite de caracteres.')
+        elif(len(anio) > 4):
+            messagebox.showerror('Error', 'El año de publicacion del libro sobrepasa el limite de caracteres.')
         else:
-            messagebox.showerror("Error", "Este usuario ya existe.")
+            disp = 1 if disp.lower() == 'si' else 0
+            messagebox.showinfo('Editado', 'Libro editado correctamente.')
+            db.editarLibro(libroId, titulo, autor, anio, disp)
+
+            self.tituloFrame.destroy()
+            self.frame.destroy()
+            self.crearInicio()
 
     def añadirLibro(self):
         titulo = self.titulo.get().lower().replace(" ", "-")
@@ -499,7 +507,6 @@ class App:
             messagebox.showerror("Error", "Ingresa si el libro estara disponible")
         else:
             sql = db.consulta(f"SELECT titulo FROM libros WHERE titulo = '{titulo}'")
-            print(sql)
             if sql == []:
                 ver = messagebox.askyesno(
                     "Añadir Libro", "¿Esta seguro que quiere añadir este libro?"
@@ -514,14 +521,5 @@ class App:
             else:
                 messagebox.showerror("Error", "Este libro ya existe")
 
-    def eliminarLibro(self, libroId):
-        db = MySQL()
-        
-        verificar = db.consulta(f"select * from libros where id = '{libroId}'")
-        if(verificar == []):
-            messagebox.showerror('Error', 'Este libro ya fue borrado o no existe')
-        else:
-            per = messagebox.askyesno('Confirmacion', '¿Estas seguro que queres eliminar este libro?')
-            db.eliminarLibro(libroId) if per == 1 else 0
 
 app = App()
