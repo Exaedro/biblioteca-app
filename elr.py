@@ -28,6 +28,86 @@ import mysql.connector
 #+------+-------+-------+
 #|  i   |   i   |   i   |
 #+------+-------+-------+
+#|  j   |   j   |   j   |
+#+------+-------+-------+
+#|  k   |   k   |   k   |
+#+------+-------+-------+
+#|  l   |   l   |   l   |
+#+------+-------+-------+
+#|  m   |   m   |   m   |
+#+------+-------+-------+
+#|  n   |   n   |   n   |
+#+------+-------+-------+
+#|  ñ   |   ñ   |   ñ   |
+#+------+-------+-------+
+#|  n   |   n   |   n   |
+#+------+-------+-------+
+#|  n   |   n   |   o   |
+#+------+-------+-------+
+#|  n   |   n   |   p   |
+#+------+-------+-------+
+#|  n   |   n   |   q   |
+#+------+-------+-------+
+#|  n   |   n   |   r   |
+#+------+-------+-------+
+#|  n   |   n   |   s   |
+#+------+-------+-------+
+#|  n   |   n   |   t   |
+#+------+-------+-------+
+#|  n   |   n   |   u   |
+#+------+-------+-------+
+#|  n   |   n   |   v   |
+#+------+-------+-------+
+#|  n   |   n   |   w   |
+#+------+-------+-------+
+#|  n   |   n   |   x   |
+#+------+-------+-------+
+#|  n   |   n   |   y   |
+#+------+-------+-------+
+#|  n   |   n   |   z   |
+#+------+-------+-------+
+#|  n   |   n   |   n   |
+#+------+-------+-------+
+#|  n   |   n   |   n   |
+#+------+-------+-------+
+#|  n   |   n   |   n   |
+#+------+-------+-------+
+#|  n   |   n   |   n   |
+#+------+-------+-------+
+#|  n   |   n   |   n   |
+#+------+-------+-------+
+#|  n   |   n   |   n   |
+#+------+-------+-------+
+#|  n   |   n   |   n   |
+#+------+-------+-------+
+#|  n   |   n   |   n   |
+#+------+-------+-------+
+#|  n   |   n   |   n   |
+#+------+-------+-------+
+#|  n   |   n   |   n   |
+#+------+-------+-------+
+#|  n   |   n   |   n   |
+#+------+-------+-------+
+#|  n   |   n   |   n   |
+#+------+-------+-------+
+#|  n   |   n   |   n   |
+#+------+-------+-------+
+#|  n   |   n   |   n   |
+#+------+-------+-------+
+#|  n   |   n   |   n   |
+#+------+-------+-------+
+#|  n   |   n   |   n   |
+
+
+
+
+
+
+
+
+
+
+
 
 class MySQL:
     def __init__(self):
@@ -121,6 +201,9 @@ class App:
         self.frame = Frame(self.app)
         self.frame.pack()
 
+        self.usuario.set('admin')
+        self.contra.set('123')
+
         self.texto1 = ttk.Label(self.frame, text="Usuario", font="bold").grid(
             column=0, row=0, pady=10
         )
@@ -133,8 +216,8 @@ class App:
         )
         self.inpc = ttk.Entry(self.frame, textvariable=self.contra, width=30).grid(
             column=0, row=3
-        )  # Input de la contraseña
-
+        ) # Input de la contraseña  
+        
         self.boton = ttk.Button(
             self.frame,
             text="Iniciar Sesion",
@@ -202,6 +285,8 @@ class App:
 
         db = MySQL()
 
+        self.busqueda = StringVar()
+
         nombreUsuario = self.usuario.get()
         rolUsuario = self.rol.get()
 
@@ -220,45 +305,92 @@ class App:
             self.libros, text="Libros disponibles", font=self.fuenteAlta
         ).grid(column=0, row=2)
 
-        libros = db.obtenerLibros()
-        for i in range(len(libros)):
-            # Texto del nombre del titulo, autor y año de los libros
-            ttk.Label(
-                self.libros,
-                text=f"{libros[i][1].capitalize().replace('-', ' ')} / {libros[i][2].capitalize().replace('-', ' ')} / {libros[i][3]}",
-            ).grid(column=0, row=i + 3)
+        self.palabra = ''
 
-            # Boton para pedir prestado
-            self.libroBoton = ttk.Button(
-                self.libros,
-                text="Pedir prestado",
-                command=lambda libro=libros[i][0]: self.pedirLibroPrestado(libro),
-                state=NORMAL if libros[i][4] else DISABLED,
-            ).grid(column=1, row=i + 3, pady=2.5, padx=3)
+        ttk.Entry(self.libros, textvariable=self.busqueda).grid(column=0, row=3, pady=15)
+        ttk.Button(self.libros, text='Buscar', command=lambda:combine_funcs(self.obtener(), self.frame.destroy(), self.libros.destroy(), self.crearInicio())).grid(column=1, row=3, pady=15)
 
-            if rolUsuario == "administrador":
-                # Boton de editar libro
-                ttk.Button(
+        if self.palabra == '':
+            libros = db.obtenerLibros()
+            for i in range(len(libros)):
+                # Texto del nombre del titulo, autor y año de los libros
+                ttk.Label(
                     self.libros,
-                    text="Editar",
-                    command=lambda libro=libros[i][0]: combine_funcs(
-                        self.frame.destroy(),
-                        self.libros.destroy(),
-                        self.editarLibro(libro),
-                    ),
-                ).grid(column=2, row=i + 3)
+                    text=f"{libros[i][1].capitalize().replace('-', ' ')} / {libros[i][2].capitalize().replace('-', ' ')} / {libros[i][3]}",
+                ).grid(column=0, row=i + 4)
 
-                #Boton de eliminar libro
-                ttk.Button(
+                # Boton para pedir prestado
+                self.libroBoton = ttk.Button(
                     self.libros,
-                    text='Eliminar',
-                    command=lambda libroId=libros[i][0]: combine_funcs(
-                        self.eliminarLibro(libroId),
-                        self.frame.destroy(),
-                        self.libros.destroy(),
-                        self.crearInicio()
-                    )
-                ).grid(column=3, row=i+3, padx=3)
+                    text="Pedir prestado",
+                    command=lambda libro=libros[i][0]: self.pedirLibroPrestado(libro),
+                    state=NORMAL if libros[i][4] else DISABLED,
+                ).grid(column=1, row=i + 4, pady=2.5, padx=3)
+
+                if rolUsuario == "administrador":
+                    # Boton de editar libro
+                    ttk.Button(
+                        self.libros,
+                        text="Editar",
+                        command=lambda libro=libros[i][0]: combine_funcs(
+                            self.frame.destroy(),
+                            self.libros.destroy(),
+                            self.editarLibro(libro),
+                        ),
+                    ).grid(column=2, row=i + 4)
+
+                    #Boton de eliminar libro
+                    ttk.Button(
+                        self.libros,
+                        text='Eliminar',
+                        command=lambda libroId=libros[i][0]: combine_funcs(
+                            self.eliminarLibro(libroId),
+                            self.frame.destroy(),
+                            self.libros.destroy(),
+                            self.crearInicio()
+                        )
+                    ).grid(column=3, row=i+4, padx=3)
+        else:
+            libros = db.consulta(f"SELECT * FROM libros l WHERE l.titulo = '{self.palabra}'")
+            for i in range(len(libros)):
+                # Texto del nombre del titulo, autor y año de los libros
+                ttk.Label(
+                    self.libros,
+                    text=f"{libros[i][1].capitalize().replace('-', ' ')} / {libros[i][2].capitalize().replace('-', ' ')} / {libros[i][3]}",
+                ).grid(column=0, row=i + 4)
+
+                # Boton para pedir prestado
+                self.libroBoton = ttk.Button(
+                    self.libros,
+                    text="Pedir prestado",
+                    command=lambda libro=libros[i][0]: self.pedirLibroPrestado(libro),
+                    state=NORMAL if libros[i][4] else DISABLED,
+                ).grid(column=1, row=i + 4, pady=2.5, padx=3)
+
+                if rolUsuario == "administrador":
+                    # Boton de editar libro
+                    ttk.Button(
+                        self.libros,
+                        text="Editar",
+                        command=lambda libro=libros[i][0]: combine_funcs(
+                            self.frame.destroy(),
+                            self.libros.destroy(),
+                            self.editarLibro(libro),
+                        ),
+                    ).grid(column=2, row=i + 4)
+
+                    #Boton de eliminar libro
+                    ttk.Button(
+                        self.libros,
+                        text='Eliminar',
+                        command=lambda libroId=libros[i][0]: combine_funcs(
+                            self.eliminarLibro(libroId),
+                            self.frame.destroy(),
+                            self.libros.destroy(),
+                            self.crearInicio()
+                        )
+                    ).grid(column=3, row=i+4, padx=3)
+                
 
         if rolUsuario == "administrador":
             # Boton de añadir libro
@@ -277,6 +409,9 @@ class App:
 
         self.app.mainloop()
 
+    def obtener(self):
+        self.palabra = self.busqueda.get()
+        
     def crearLibro(self):
         self.frame.destroy()
         self.libros.destroy()
