@@ -205,28 +205,39 @@ class App:
         nombreUsuario = self.usuario.get()
         rolUsuario = self.rol.get()
 
+        # Boton de cerrar sesion
+        ttk.Button(self.frame, text='Cerrar sesion', command=lambda: combine_funcs(self.frame.destroy(), self.libros.destroy(), self.crearInicioDeSesion())).grid(column=0, row=0, padx=(0, 60))
+
+        # Texto de bienvenida
         self.inicioLabel = ttk.Label(
             self.frame,
             text=f"¡Bienvenido {nombreUsuario}!",
             font=self.fuenteAlta,
-        ).grid(column=0, row=0)
+        ).grid(column=1, row=0)
+
+        # Texto de libros disponibles
         self.texto1 = ttk.Label(
             self.libros, text="Libros disponibles", font=self.fuenteAlta
         ).grid(column=0, row=2)
 
         libros = db.obtenerLibros()
         for i in range(len(libros)):
+            # Texto del nombre del titulo, autor y año de los libros
             ttk.Label(
                 self.libros,
                 text=f"{libros[i][1].capitalize().replace('-', ' ')} / {libros[i][2].capitalize().replace('-', ' ')} / {libros[i][3]}",
             ).grid(column=0, row=i + 3)
+
+            # Boton para pedir prestado
             self.libroBoton = ttk.Button(
                 self.libros,
                 text="Pedir prestado",
                 command=lambda libro=libros[i][0]: self.pedirLibroPrestado(libro),
                 state=NORMAL if libros[i][4] else DISABLED,
             ).grid(column=1, row=i + 3, pady=2.5, padx=3)
+
             if rolUsuario == "administrador":
+                # Boton de editar libro
                 ttk.Button(
                     self.libros,
                     text="Editar",
@@ -236,6 +247,8 @@ class App:
                         self.editarLibro(libro),
                     ),
                 ).grid(column=2, row=i + 3)
+
+                #Boton de eliminar libro
                 ttk.Button(
                     self.libros,
                     text='Eliminar',
@@ -245,19 +258,22 @@ class App:
                         self.libros.destroy(),
                         self.crearInicio()
                     )
-                ).grid(column=3, row=i+3)
+                ).grid(column=3, row=i+3, padx=3)
 
         if rolUsuario == "administrador":
+            # Boton de añadir libro
             self.libro = ttk.Button(
                 self.frame, text="Añadir libro", command=lambda: self.crearLibro()
-            ).grid(column=1, row=0, padx=3)
+            ).grid(column=2, row=0, padx=3)
+            
+            # Boton de ver perfil
         ttk.Button(
             self.frame,
             text="Perfil",
             command=lambda: combine_funcs(
                 self.frame.destroy(), self.libros.destroy(), self.usuarioPerfil()
             ),
-        ).grid(column=2, row=0, padx=3)
+        ).grid(column=3, row=0, padx=3)
 
         self.app.mainloop()
 
