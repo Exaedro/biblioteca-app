@@ -3,7 +3,8 @@
 # MySQL
 Nombre de la base de datos: **biblioteca**
 ## Diseñador
-![image](https://github.com/Exaedro/biblioteca-app/assets/77593869/1bdb7e3f-9399-4d6f-98b2-de23e4f22f42)
+![image](https://github.com/kani204/biblioteca-app/assets/108910137/49f955e7-4f23-4285-9654-912399fbb48a)
+
 
 ## Tablas
 ### Usuarios
