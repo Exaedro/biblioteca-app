@@ -8,26 +8,6 @@ import mysql.connector
 # Cerrar sesion
 # Creditos
 
-#ABECEDARIO DEL CODIGO
-#+------+-------+-------+
-#|  a   |   a   |   a   |
-#+------+-------+-------+
-#|  b   |   b   |   b   |
-#+------+-------+-------+
-#|  c   |   c   |   c   |
-#+------+-------+-------+
-#|  d   |   d   |   d   |
-#+------+-------+-------+
-#|  e   |   e   |   e   |
-#+------+-------+-------+
-#|  f   |   f   |   f   |
-#+------+-------+-------+
-#|  g   |   g   |   g   |
-#+------+-------+-------+
-#|  h   |   h   |   h   |
-#+------+-------+-------+
-#|  i   |   i   |   i   |
-#+------+-------+-------+
 
 class MySQL:
     def __init__(self):
@@ -46,9 +26,9 @@ class MySQL:
         self.cursor.execute(consulta, val)
         self.db.commit()
 
-    def insertarLibro(self, titulo, autor, anio, disp):
-        consulta = "INSERT INTO libros (titulo, autor, anio, disponibilidad) VALUES (%s, %s, %s, %s)"
-        val = (titulo, autor, anio, disp)
+    def insertarLibro(self, nombre, genero, autor, publicacion, edicion, rango_edad, nro_paginas, idioma, editorial, nro_de_saga, tapa, disponibilidad):
+        consulta = "INSERT INTO libros (nombre, genero, autor, publicacion, edicion, rango_edad, nro_paginas, idioma, editorial, nro_de_saga, tapa, disponibilidad) VALUES (%s, %s, %s,%s,%s,%s,%s,%s,%s,%s,%s,%s)"
+        val = (nombre, genero, autor, publicacion, edicion, rango_edad, nro_paginas, idioma, editorial, nro_de_saga, tapa, disponibilidad)
 
         self.cursor.execute(consulta, val)
         self.db.commit()
@@ -68,8 +48,8 @@ class MySQL:
         libros = self.consulta("SELECT * FROM libros LIMIT 10")
         return libros
 
-    def editarLibro(self, libroId, titulo, autor, anio, disp):
-        consulta = f"UPDATE libros SET titulo = '{titulo.lower().replace(' ', '-')}', autor = '{autor.lower().replace(' ', '-')}', anio = '{anio}', disponibilidad = '{disp}' WHERE id = '{libroId}'"
+    def editarLibro(self, nombre, genero, autor, publicacion, edicion, rango_edad, nro_paginas, idioma, editorial, nro_de_saga, tapa, disponibilidad):
+        consulta = f"UPDATE libros SET titulo = '{nombre.lower().replace(' ', '-')}', genero = '{genero.lower().replace(' ', '-')}' , autor = '{autor.lower().replace(' ', '-')}', publicacion = '{publicacion}', edicion = '{edicion.lower().replace(' ', '-')}', rango_edad = '{rango_edad.lower()}', nro_paginas = '{nro_paginas}', idioma = '{idioma.lower()}',  ,editorial = '{editorial.lower().replace(' ', '-')}', nro_de_saga = '{nro_de_saga}', tapa = '{tapa}' ,disponibilidad = '{disponibilidad}' WHERE id = '{libroId}'"
         self.cursor.execute(consulta)
         self.db.commit()
 
@@ -286,9 +266,17 @@ class App:
         self.frame.pack()
         self.formulario.pack(padx=20)
 
-        self.titulo = StringVar()
+        self.nombre = StringVar()
+        self.genero = StringVar()
         self.autor = StringVar()
-        self.anio = StringVar()
+        self.publicacion = StringVar()
+        self.edicion = StringVar()
+        self.rango_edad = StringVar()
+        self.nro_paginas = StringVar()
+        self.idioma = StringVar()
+        self.editorial = StringVar()
+        self.nro_de_saga = StringVar()
+        self.tapa = StringVar()
         self.disponibilidad = StringVar()
 
         self.boton2 = ttk.Button(
@@ -299,32 +287,89 @@ class App:
                 self.formulario.destroy(), self.frame.destroy(), self.crearInicio()
             ),
         ).grid(column=0, row=0)
+
         self.label1 = ttk.Label(
             self.frame, text="Crear un libro nuevo", font=self.fuenteAlta, padding=15
         ).grid(column=1, row=0)
 
-        self.label2 = ttk.Label(self.formulario, text="Titulo", padding=5).grid(
+        self.label2 = ttk.Label(self.formulario, text="nombre", padding=5).grid(
             column=1, row=1
         )
-        self.tituloEntry = ttk.Entry(self.formulario, textvariable=self.titulo).grid(
+        self.nombreEntry = ttk.Entry(self.formulario, textvariable=self.nombre).grid(
             column=2, row=1
         )
 
-        self.label3 = ttk.Label(self.formulario, text="Autor", padding=5).grid(
+        self.label3 = ttk.Label(self.formulario, text="genero", padding=5).grid(
+            column=1, row=1
+        )
+        self.generoEntry = ttk.Entry(self.formulario, textvariable=self.genero).grid(
+            column=2, row=1
+        )
+
+        self.label4 = ttk.Label(self.formulario, text="Autor", padding=5).grid(
             column=1, row=2
         )
         self.autorEntry = ttk.Entry(self.formulario, textvariable=self.autor).grid(
             column=2, row=2
         )
 
-        self.label4 = ttk.Label(
+        self.label5 = ttk.Label(
             self.formulario, text="Año de publicacion", padding=5
         ).grid(column=1, row=3)
-        self.anioEntry = ttk.Entry(self.formulario, textvariable=self.anio).grid(
+        self.publicacionEntry = ttk.Entry(self.formulario, textvariable=self.publicacion).grid(
             column=2, row=3
         )
 
-        self.label5 = ttk.Label(self.formulario, text="Disponibilidad", padding=5).grid(
+        self.label6 = ttk.Label(self.formulario, text="edicion", padding=5).grid(
+            column=1, row=2
+        )
+        self.edicionEntry = ttk.Entry(self.formulario, textvariable=self.edicion).grid(
+            column=2, row=2
+        )
+
+        self.label7 = ttk.Label(self.formulario, text="rango_edad", padding=5).grid(
+            column=1, row=2
+        )
+        self.rango_edadEntry = ttk.Entry(self.formulario, textvariable=self.rango_edad).grid(
+            column=2, row=2
+        )
+
+        self.label8 = ttk.Label(self.formulario, text="nro_paginas", padding=5).grid(
+            column=1, row=2
+        )
+        self.nro_paginasEntry = ttk.Entry(self.formulario, textvariable=self.nro_paginas).grid(
+            column=2, row=2
+        )
+
+        self.label9 = ttk.Label(self.formulario, text="idioma", padding=5).grid(
+            column=1, row=2
+        )
+        self.nro_idiomaEntry = ttk.Entry(self.formulario, textvariable=self.idioma).grid(
+            column=2, row=2
+        )
+
+        self.label10 = ttk.Label(self.formulario, text="editorial", padding=5).grid(
+            column=1, row=2
+        )
+        self.nro_editorialEntry = ttk.Entry(self.formulario, textvariable=self.editorial).grid(
+            column=2, row=2
+        )
+
+        self.label11 = ttk.Label(self.formulario, text="nro_de_saga", padding=5).grid(
+            column=1, row=2
+        )
+        self.nro_de_sagaEntry = ttk.Entry(self.formulario, textvariable=self.nro_de_saga).grid(
+            column=2, row=2
+        )
+
+        self.label12 = ttk.Label(self.formulario, text="tapa", padding=5).grid(
+            column=1, row=2
+        )
+        self.tapaEntry = ttk.Entry(self.formulario, textvariable=self.tapa).grid(
+            column=2, row=2
+        )
+
+        self.label13 = ttk.Label(self.formulario, text="Disponibilidad", padding=5).grid(
             column=1, row=4
         )
         self.dispEntry = ttk.Combobox(
