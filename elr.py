@@ -48,8 +48,8 @@ class MySQL:
         libros = self.consulta("SELECT * FROM libros LIMIT 10")
         return libros
 
-    def editarLibro(self, nombre, genero, autor, publicacion, edicion, rango_edad, nro_paginas, idioma, editorial, nro_de_saga, tapa, disponibilidad):
-        consulta = f"UPDATE libros SET titulo = '{nombre.lower().replace(' ', '-')}', genero = '{genero.lower().replace(' ', '-')}' , autor = '{autor.lower().replace(' ', '-')}', publicacion = '{publicacion}', edicion = '{edicion.lower().replace(' ', '-')}', rango_edad = '{rango_edad.lower()}', nro_paginas = '{nro_paginas}', idioma = '{idioma.lower()}',  ,editorial = '{editorial.lower().replace(' ', '-')}', nro_de_saga = '{nro_de_saga}', tapa = '{tapa}' ,disponibilidad = '{disponibilidad}' WHERE id = '{libroId}'"
+    def editarLibro(self, libroId, nombre, genero, autor, publicacion, edicion, rango_edad, nro_paginas, idioma, editorial, nro_de_saga, tapa, disponibilidad):
+        consulta = f"UPDATE libros SET nombre = '{nombre.lower().replace(' ', '-')}', genero = '{genero.lower().replace(' ', '-')}' , autor = '{autor.lower().replace(' ', '-')}', publicacion = '{publicacion}', edicion = '{edicion.lower().replace(' ', '-')}', rango_edad = '{rango_edad.lower()}', nro_paginas = '{nro_paginas}', idioma = '{idioma.lower()}',  ,editorial = '{editorial.lower().replace(' ', '-')}', nro_de_saga = '{nro_de_saga}', tapa = '{tapa}' ,disponibilidad = '{disponibilidad}' WHERE id = '{libroId}'"
         self.cursor.execute(consulta)
         self.db.commit()
 
@@ -97,6 +97,9 @@ class App:
         self.usuario = StringVar()
         self.contra = StringVar()
         self.rol = StringVar()
+
+        self.usuario.set('admin')
+        self.contra.set('123')
 
         self.frame = Frame(self.app)
         self.frame.pack()
@@ -157,10 +160,11 @@ class App:
 
         self.botonRegistrarse = ttk.Button(
             self.frame,
-            text="Registrase",
+            text="Registrarse",
             width=30,
             command=lambda: self.verificarRegistroSesion(),
-        ).grid(column=0, row=5)
+        ).grid(column=0, row=5
+               )
         self.botonCancelar = ttk.Button(
             self.frame,
             text="Cancelar",
@@ -198,48 +202,14 @@ class App:
         # Texto de libros disponibles
         self.texto1 = ttk.Label(
             self.libros, text="Libros disponibles", font=self.fuenteAlta
-        ).grid(column=0, row=2)
+        ).grid(column=0, row=2, pady=10)
+
+        self.busqueda = StringVar()
+
+        ttk.Entry(self.libros, textvariable=self.busqueda).grid(column=0, row=3) # Entry de busqueda
+        ttk.Button(self.libros, text='Buscar', command=lambda:self.buscar()).grid(column=1, row=3, padx=10) # Boton de buscar
 
         libros = db.obtenerLibros()
-        for i in range(len(libros)):
-            # Texto del nombre del titulo, autor y año de los libros
-            ttk.Label(
-                self.libros,
-                text=f"{libros[i][1].capitalize().replace('-', ' ')} / {libros[i][2].capitalize().replace('-', ' ')} / {libros[i][3]}",
-            ).grid(column=0, row=i + 3)
-
-            # Boton para pedir prestado
-            self.libroBoton = ttk.Button(
-                self.libros,
-                text="Pedir prestado",
-                command=lambda libro=libros[i][0]: self.pedirLibroPrestado(libro),
-                state=NORMAL if libros[i][4] else DISABLED,
-            ).grid(column=1, row=i + 3, pady=2.5, padx=3)
-
-            if rolUsuario == "administrador":
-                # Boton de editar libro
-                ttk.Button(
-                    self.libros,
-                    text="Editar",
-                    command=lambda libro=libros[i][0]: combine_funcs(
-                        self.frame.destroy(),
-                        self.libros.destroy(),
-                        self.editarLibro(libro),
-                    ),
-                ).grid(column=2, row=i + 3)
-
-                #Boton de eliminar libro
-                ttk.Button(
-                    self.libros,
-                    text='Eliminar',
-                    command=lambda libroId=libros[i][0]: combine_funcs(
-                        self.eliminarLibro(libroId),
-                        self.frame.destroy(),
-                        self.libros.destroy(),
-                        self.crearInicio()
-                    )
-                ).grid(column=3, row=i+3, padx=3)
-
         if rolUsuario == "administrador":
             # Boton de añadir libro
             self.libro = ttk.Button(
@@ -256,6 +226,70 @@ class App:
         ).grid(column=3, row=0, padx=3)
 
         self.app.mainloop()
+
+    def buscar(self):
+        self.libros.destroy()
+        
+        self.libros = Frame(self.app)
+        self.libros.pack(side="left", fill="y", padx=10)
+
+        # Texto de libros disponibles
+        self.texto1 = ttk.Label(
+            self.libros, text="Libros disponibles", font=self.fuenteAlta
+        ).grid(column=0, row=2, pady=10)
+
+        ttk.Entry(self.libros, textvariable=self.busqueda).grid(column=0, row=3) # Entry de busqueda
+        ttk.Button(self.libros, text='Buscar', command=lambda:self.buscar()).grid(column=1, row=3, padx=10) # Boton de buscar
+
+        db = MySQL()
+        busqueda = self.busqueda.get()
+        nombreUsuario = self.usuario.get()
+        rolUsuario = self.rol.get()
+
+        todosLosLibros = db.consulta(f'SELECT * FROM libros')
+        libroBuscado = db.consulta(f'SELECT * FROM libros WHERE nombre = "{busqueda}"')
+        
+        if(libroBuscado == [] and busqueda == ''): libros = todosLosLibros
+        else: libros = libroBuscado
+        
+        for i in range(len(libros)):
+            # Texto del nombre del titulo, autor y año de los libros
+            ttk.Label(
+                self.libros,
+                text=f"{libros[i][1].capitalize().replace('-', ' ')} / {libros[i][2].capitalize().replace('-', ' ')} / {libros[i][3].capitalize().replace('-', ' ')} / {libros[i][4]} / {libros[i][5]} / {libros[i][6]} / {libros[i][7]} / {libros[i][8].capitalize().replace('-', ' ')} / {libros[i][8].capitalize().replace('-', ' ')} / {libros[i][9].capitalize().replace('-', ' ')} / {libros[i][10]} / {libros[i][11].capitalize().replace('-', ' ')}",
+            ).grid(column=0, row=i + 4)
+
+            # Boton para pedir prestado
+            self.libroBoton = ttk.Button(
+                self.libros,
+                text="Pedir prestado",
+                command=lambda libro=libros[i][0]: self.pedirLibroPrestado(libro),
+                state=NORMAL if libros[i][4] else DISABLED,
+            ).grid(column=1, row=i + 4, pady=2.5, padx=3)
+
+            if rolUsuario == "administrador":
+                # Boton de editar libro
+                ttk.Button(
+                    self.libros,
+                    text="Editar",
+                    command=lambda libro=libros[i][0]: combine_funcs(
+                        self.frame.destroy(),
+                        self.libros.destroy(),
+                        self.editarLibro(libro),
+                    ),
+                ).grid(column=2, row=i + 4)
+
+                #Boton de eliminar libro
+                ttk.Button(
+                    self.libros,
+                    text='Eliminar',
+                    command=lambda libroId=libros[i][0]: combine_funcs(
+                        self.eliminarLibro(libroId),
+                        self.frame.destroy(),
+                        self.libros.destroy(),
+                        self.crearInicio()
+                    )
+                ).grid(column=3, row=i+4, padx=3)
 
     def crearLibro(self):
         self.frame.destroy()
@@ -300,84 +334,84 @@ class App:
         )
 
         self.label3 = ttk.Label(self.formulario, text="genero", padding=5).grid(
-            column=1, row=1
+            column=1, row=2
         )
         self.generoEntry = ttk.Entry(self.formulario, textvariable=self.genero).grid(
-            column=2, row=1
+            column=2, row=2
         )
 
         self.label4 = ttk.Label(self.formulario, text="Autor", padding=5).grid(
-            column=1, row=2
+            column=1, row=3
         )
         self.autorEntry = ttk.Entry(self.formulario, textvariable=self.autor).grid(
-            column=2, row=2
+            column=2, row=3
         )
 
         self.label5 = ttk.Label(
             self.formulario, text="Año de publicacion", padding=5
-        ).grid(column=1, row=3)
+        ).grid(column=1, row=4)
         self.publicacionEntry = ttk.Entry(self.formulario, textvariable=self.publicacion).grid(
-            column=2, row=3
+            column=2, row=4
         )
 
         self.label6 = ttk.Label(self.formulario, text="edicion", padding=5).grid(
-            column=1, row=2
+            column=1, row=5
         )
         self.edicionEntry = ttk.Entry(self.formulario, textvariable=self.edicion).grid(
-            column=2, row=2
+            column=2, row=5
         )
 
         self.label7 = ttk.Label(self.formulario, text="rango_edad", padding=5).grid(
-            column=1, row=2
+            column=1, row=6
         )
         self.rango_edadEntry = ttk.Entry(self.formulario, textvariable=self.rango_edad).grid(
-            column=2, row=2
+            column=2, row=6
         )
 
         self.label8 = ttk.Label(self.formulario, text="nro_paginas", padding=5).grid(
-            column=1, row=2
+            column=1, row=7
         )
         self.nro_paginasEntry = ttk.Entry(self.formulario, textvariable=self.nro_paginas).grid(
-            column=2, row=2
+            column=2, row=7
         )
 
         self.label9 = ttk.Label(self.formulario, text="idioma", padding=5).grid(
-            column=1, row=2
+            column=1, row=8
         )
         self.nro_idiomaEntry = ttk.Entry(self.formulario, textvariable=self.idioma).grid(
-            column=2, row=2
+            column=2, row=8
         )
 
         self.label10 = ttk.Label(self.formulario, text="editorial", padding=5).grid(
-            column=1, row=2
+            column=1, row=9
         )
         self.nro_editorialEntry = ttk.Entry(self.formulario, textvariable=self.editorial).grid(
-            column=2, row=2
+            column=2, row=9
         )
 
         self.label11 = ttk.Label(self.formulario, text="nro_de_saga", padding=5).grid(
-            column=1, row=2
+            column=1, row=10
         )
         self.nro_de_sagaEntry = ttk.Entry(self.formulario, textvariable=self.nro_de_saga).grid(
-            column=2, row=2
+            column=2, row=10
         )
 
         self.label12 = ttk.Label(self.formulario, text="tapa", padding=5).grid(
-            column=1, row=2
+            column=1, row=11
         )
         self.tapaEntry = ttk.Entry(self.formulario, textvariable=self.tapa).grid(
-            column=2, row=2
+            column=2, row=11
         )
 
         self.label13 = ttk.Label(self.formulario, text="Disponibilidad", padding=5).grid(
-            column=1, row=4
+            column=1, row=12
         )
         self.dispEntry = ttk.Combobox(
             self.formulario,
             state="readonly",
             values=["Si", "No"],
             textvariable=self.disponibilidad,
-        ).grid(column=2, row=4)
+        ).grid(column=2, row=12)
 
         self.boton1 = ttk.Button(
             self.formulario,
@@ -385,37 +419,64 @@ class App:
             padding=5,
             width=23,
             command=lambda: self.añadirLibro(),
-        ).grid(column=2, row=5)
+        ).grid(column=2, row=13)
 
         self.app.mainloop()
 
     def editarLibro(self, libroId):
-        self.tituloFrame = Frame(self.app)
+        self.nombreFrame = Frame(self.app)
         self.frame = Frame(self.app)
-        self.tituloFrame.pack()
+        self.nombreFrame.pack()
         self.frame.pack()
 
         db = MySQL()
         libroSql = db.consulta(f"SELECT * FROM libros WHERE id = '{libroId}'")
 
-        self.titulo = StringVar(value=libroSql[0][1])
+        self.nombre = StringVar(value=libroSql[0][1])
         self.autor = StringVar(value=libroSql[0][2])
         self.anio = StringVar(value=libroSql[0][3])
         self.disponibilidad = StringVar(value=libroSql[0][4])
         libroId = libroSql[0][0]
 
-        ttk.Label(self.tituloFrame, text="Editar libro", font=self.fuenteAlta).grid(
+        ttk.Label(self.nombreFrame, text="Editar libro", font=self.fuenteAlta).grid(
             column=0, row=0, pady=15
         )
 
-        ttk.Label(self.frame, text="Titulo").grid(column=0, row=1)
-        ttk.Entry(self.frame, textvariable=self.titulo).grid(column=1, row=1, pady=2.5)
+        ttk.Label(self.frame, text="Nombre").grid(column=0, row=1)
+        ttk.Entry(self.frame, textvariable=self.nombre).grid(column=1, row=1, pady=2.5)
 
-        ttk.Label(self.frame, text="Autor").grid(column=0, row=2)
-        ttk.Entry(self.frame, textvariable=self.autor).grid(column=1, row=2, pady=2.5)
+        ttk.Label(self.frame, text="Genero").grid(column=0, row=2)
+        ttk.Entry(self.frame, textvariable=self.genero).grid(column=1, row=2, pady=2.5)
 
-        ttk.Label(self.frame, text="Año de publicacion").grid(column=0, row=3)
-        ttk.Entry(self.frame, textvariable=self.anio).grid(column=1, row=3, pady=2.5)
+        ttk.Label(self.frame, text="Autor").grid(column=0, row=3)
+        ttk.Entry(self.frame, textvariable=self.autor).grid(column=1, row=3, pady=2.5)
+
+        ttk.Label(self.frame, text="Publicacion").grid(column=0, row=4)
+        ttk.Entry(self.frame, textvariable=self.publicacion).grid(column=1, row=4, pady=2.5)
+
+        ttk.Label(self.frame, text="Edicion").grid(column=0, row=5)
+        ttk.Entry(self.frame, textvariable=self.edicion).grid(column=1, row=5, pady=2.5)
+
+        ttk.Label(self.frame, text="Rango de Edad").grid(column=0, row=6)
+        ttk.Entry(self.frame, textvariable=self.rango_edad).grid(column=1, row=6, pady=2.5)
+
+        ttk.Label(self.frame, text="Numero de paginas").grid(column=0, row=7)
+        ttk.Entry(self.frame, textvariable=self.nro_paginas).grid(column=1, row=7, pady=2.5)
+
+        ttk.Label(self.frame, text="Idioma").grid(column=0, row=8)
+        ttk.Entry(self.frame, textvariable=self.idioma).grid(column=1, row=8, pady=2.5)
+
+        ttk.Label(self.frame, text="Editorial").grid(column=0, row=9)
+        ttk.Entry(self.frame, textvariable=self.editorial).grid(column=1, row=9, pady=2.5)
+
+        ttk.Label(self.frame, text="Numero de saga").grid(column=0, row=10)
+        ttk.Entry(self.frame, textvariable=self.nro_de_saga).grid(column=1, row=10, pady=2.5)
+
+        ttk.Label(self.frame, text="Tapa").grid(column=0, row=11)
+        ttk.Entry(self.frame, textvariable=self.tapa).grid(column=1, row=11, pady=2.5)
+
+
+
 
         ttk.Label(self.frame, text="Disponibilidad").grid(column=0, row=4)
         ttk.Combobox(
@@ -429,7 +490,7 @@ class App:
             self.frame,
             text="Cancelar",
             command=lambda: combine_funcs(
-                self.tituloFrame.destroy(), self.crearInicio()
+                self.nombreFrame.destroy(), self.crearInicio()
             ),
         ).grid(column=0, row=5)
         ttk.Button(
@@ -438,7 +499,7 @@ class App:
             command=lambda: 
                 self.verificarEdicion(
                     libroId,
-                    self.titulo.get(),
+                    self.nombre.get(),
                     self.autor.get(),
                     self.anio.get(),
                     self.disponibilidad.get(),
@@ -448,8 +509,8 @@ class App:
         self.app.mainloop()
 
     def usuarioPerfil(self):
-        self.titulo = Frame()
-        self.titulo.pack(pady=20)
+        self.nombre = Frame()
+        self.nombre.pack(pady=20)
 
         db = MySQL()
 
@@ -457,14 +518,14 @@ class App:
         self.libros.pack(fill="y", side="left", padx=10)
 
         ttk.Button(
-            self.titulo,
+            self.nombre,
             text="Volver",
             command=lambda: combine_funcs(
-                self.titulo.destroy(), self.libros.destroy(), self.crearInicio()
+                self.nombre.destroy(), self.libros.destroy(), self.crearInicio()
             ),
         ).grid(column=0, row=0)
         ttk.Label(
-            self.titulo, text=f"Perfil de {self.usuario.get()}", font=self.fuenteAlta
+            self.nombre, text=f"Perfil de {self.usuario.get()}", font=self.fuenteAlta
         ).grid(column=1, row=0)
         ttk.Label(self.libros, text="Tus libros prestados", font=self.fuenteAlta).grid(
             column=0, row=1
@@ -483,7 +544,7 @@ class App:
                 text="Devolver libro",
                 command=lambda libro=librosSql[i][0]: combine_funcs(
                     self.devolverLibro(libro),
-                    self.titulo.destroy(),
+                    self.nombre.destroy(),
                     self.libros.destroy(),
                     self.usuarioPerfil(),
                 ),
@@ -569,52 +630,94 @@ class App:
             else:
                 messagebox.showerror("Error", "Este usuario ya existe.")
 
-    def verificarEdicion(self, libroId, titulo, autor, anio, disp):
+    def verificarEdicion(self, libroId, nombre, genero, autor, publicacion, edicion, rango_edad, nro_paginas, idioma, editorial, nro_de_saga, tapa, disp):
         db = MySQL()
 
-        if(titulo == '' and autor == '' and anio == ''):
+        if nombre == '' and genero == '' and autor == '' and publicacion == '' and edicion == '' and rango_edad == '' and nro_paginas == '' and idioma == '' and editorial == '' and nro_de_saga == '' and tapa == '':
             messagebox.showerror('Error', 'Escribe los datos del libro.')
-        elif(titulo == ''):
+        elif(nombre == ''):
             messagebox.showerror('Error', 'Escribe el titulo del libro.')
+        elif(genero == ''):
+            messagebox.showerror('Error', 'Escribe el genero del libro.')
         elif(autor == ''):
             messagebox.showerror('Error', 'Escribe el autor del libro.')
-        elif(anio == ''):
+        elif(publicacion == ''):
             messagebox.showerror('Error', 'Escribe el año de publicacion del libro.')
+        elif(edicion == ''):
+            messagebox.showerror('Error', 'Escribe la edición del libro.')
+        elif(rango_edad == ''):
+            messagebox.showerror('Error', 'Escribe el rango de edad del libro.')
+        elif(nro_paginas == ''):
+            messagebox.showerror('Error', 'Escribe el número de paginas del libro.')
+        elif(idioma == ''):
+            messagebox.showerror('Error', 'Escribe el idioma del libro.')
+        elif(editorial == ''):
+            messagebox.showerror('Error', 'Escribe la editorial del libro.')
+        elif(nro_de_saga == ''):
+            messagebox.showerror('Error', 'Escribe el número de saga del libro.')
+        elif(tapa == ''):
+            messagebox.showerror('Error', 'Escribe el tipo de tapa del libro.')
         elif(disp is int):
             messagebox.showerror('Error', 'Elije si el titulo estara disponible.')
 
-        elif(len(titulo) > 32):
+
+
+        elif(len(nombre) > 55):
             messagebox.showerror('Error', 'El titulo del libro sobrepasa el limite de caracteres.')
-        elif(len(autor) > 40):
+        elif(len(autor) > 33):
             messagebox.showerror('Error', 'El autor del libro sobrepasa el limite de caracteres.')
-        elif(len(anio) > 4):
+        elif(len(publicacion) > 4):
             messagebox.showerror('Error', 'El año de publicacion del libro sobrepasa el limite de caracteres.')
         else:
             disp = 1 if disp.lower() == 'si' else 0
             messagebox.showinfo('Editado', 'Libro editado correctamente.')
-            db.editarLibro(libroId, titulo, autor, anio, disp)
+            db.editarLibro(libroId, nombre, genero, autor, publicacion, edicion, rango_edad, nro_paginas, idioma, editorial, nro_de_saga, tapa, disp)
 
-            self.tituloFrame.destroy()
+            self.nombreFrame.destroy()
             self.frame.destroy()
             self.crearInicio()
 
     def añadirLibro(self):
-        titulo = self.titulo.get().lower().replace(" ", "-")
+        nombre = self.nombre.get().lower().replace(" ", "-")
+        genero = self.genero.get()
         autor = self.autor.get()
-        anio = self.anio.get()
+        publicacion = self.publicacion.get()
+        edicion = self.edicion.get()
+        rango_edad = self.rango_edad.get()
+        nro_paginas = self.nro_paginas.get()
+        idioma = self.idioma.get()
+        editorial = self.editorial.get()
+        nro_de_saga = self.nro_de_saga.get()
+        tapa = self.tapa.get()
         disponibilidad = self.disponibilidad.get()
         db = MySQL()
 
-        if titulo == "":
+        if nombre == "":
             messagebox.showerror("Error", "Ingresa el titulo del libro")
+        elif genero == "":
+            messagebox.showerror("Error", "Ingresa el genero del libro")
         elif autor == "":
             messagebox.showerror("Error", "Ingresa el autor del libro")
-        elif anio == "":
+        elif publicacion == "":
             messagebox.showerror("Error", "Ingresa el año de publicacion del libro")
+        elif edicion == "":
+            messagebox.showerror("Error", "Ingresa la edicion del libro")
+        elif rango_edad == "":
+            messagebox.showerror("Error", "Ingresa el rango de edad del libro")
+        elif nro_paginas == "":
+            messagebox.showerror("Error", "Ingresa el número de paginas del libro")
+        elif idioma == "":
+            messagebox.showerror("Error", "Ingresa el idioma del libro")
+        elif editorial == "":
+            messagebox.showerror("Error", "Ingresa el editorial del libro")
+        elif nro_de_saga == "":
+            messagebox.showerror("Error", "Ingresa el número de saga del libro")
+        elif tapa == "":
+            messagebox.showerror("Error", "Ingresa el tipo de tapa del libro")
         elif disponibilidad == "":
             messagebox.showerror("Error", "Ingresa si el libro estara disponible")
         else:
-            sql = db.consulta(f"SELECT titulo FROM libros WHERE titulo = '{titulo}'")
+            sql = db.consulta(f"SELECT nombre FROM libros WHERE nombre = '{nombre}'")
             if sql == []:
                 ver = messagebox.askyesno(
                     "Añadir Libro", "¿Esta seguro que quiere añadir este libro?"
@@ -625,7 +728,7 @@ class App:
                     else:
                         disponibilidad = 0
 
-                    db.insertarLibro(titulo, autor, anio, disponibilidad)
+                    db.insertarLibro(nombre, genero, autor, publicacion, edicion, rango_edad, nro_paginas, idioma, editorial, nro_de_saga, tapa, disponibilidad)
             else:
                 messagebox.showerror("Error", "Este libro ya existe")
 
