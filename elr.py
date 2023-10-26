@@ -85,7 +85,8 @@ class App:
         self.fuenteAlta = Font(family="Roboto Cn", size=14, font="bold")
         self.fuenteBaja = Font(family="Roboto Cn", size=8, font="bold")
 
-        self.app.geometry("500x300")
+        #ancho - altura
+        self.app.geometry("800x450")
         self.app.title("PepeLibrary")
         self.app.resizable(width=0, height=1)
     
