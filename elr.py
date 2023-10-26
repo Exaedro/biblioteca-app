@@ -15,7 +15,7 @@ class MySQL:
             user="root",
             password="",
             host="localhost",
-            database="db_biblioteca",
+            database="biblioteca",
             port="3306",
             auth_plugin="mysql_native_password",
         )
@@ -208,7 +208,7 @@ class App:
         self.busqueda = StringVar()
 
         ttk.Entry(self.libros, textvariable=self.busqueda).grid(column=0, row=3) # Entry de busqueda
-        ttk.Button(self.libros, text='Buscar', command=lambda:self.buscar()).grid(column=1, row=3, padx=10) # Boton de buscar
+        ttk.Button(self.libros, text='Buscar', command=self.buscar).grid(column=1, row=3, padx=10) # Boton de buscar
 
         libros = db.obtenerLibros()
         if rolUsuario == "administrador":
@@ -240,18 +240,14 @@ class App:
         ).grid(column=0, row=2, pady=10)
 
         ttk.Entry(self.libros, textvariable=self.busqueda).grid(column=0, row=3) # Entry de busqueda
-        ttk.Button(self.libros, text='Buscar', command=lambda:self.buscar()).grid(column=1, row=3, padx=10) # Boton de buscar
+        ttk.Button(self.libros, text='Buscar', command=self.buscar).grid(column=1, row=3, padx=10) # Boton de buscar
 
         db = MySQL()
         busqueda = self.busqueda.get()
         nombreUsuario = self.usuario.get()
         rolUsuario = self.rol.get()
 
-        todosLosLibros = db.consulta(f'SELECT * FROM libros')
-        libroBuscado = db.consulta(f'SELECT * FROM libros WHERE nombre = "{busqueda}"')
-        
-        if(libroBuscado == [] and busqueda == ''): libros = todosLosLibros
-        else: libros = libroBuscado
+        libros = db.consulta(f'SELECT * FROM libros WHERE nombre LIKE "%{busqueda}%"')
         
         for i in range(len(libros)):
             # Texto del nombre del titulo, autor y año de los libros
